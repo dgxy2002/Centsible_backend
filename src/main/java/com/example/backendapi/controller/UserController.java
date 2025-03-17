@@ -153,5 +153,10 @@ public class UserController {
 
         return new ResponseEntity<>("Score decremented successfully!", HttpStatus.OK);
     }
+    
+    @GetMapping("/top-users")
+    public List<User> getTopUsersByScore() {
+        return userRepository.findTopUsersByScore();
+    }
 
 }

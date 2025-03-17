@@ -23,6 +23,7 @@ public class User {
         this.username = username;
         this.email = email;
         this.score = 0;
+        this.budget = 0.0;
     }
 
     // Getters and Setters
@@ -78,8 +79,7 @@ public class User {
         return this.score;
     }
 
-    // Private setter for score (only accessible within the class)
-    private void setScore(int score) {
+    public void setScore(int score) {
         this.score = score;
     }
 

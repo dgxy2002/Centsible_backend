@@ -11,6 +11,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class UserControllerTest {
@@ -82,5 +85,30 @@ class UserControllerTest {
                 .param("budget", "1000.0"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Budget updated successfully!"));
+    }
+
+    @Test
+    void getTopUsersByScore() throws Exception {
+        // Add test users with scores
+        User user1 = new User("TEST_user1", "TEST_user1@example.com");
+        user1.setScore(100);
+        userRepository.save(user1);
+    
+        User user2 = new User("TEST_user2", "TEST_user2@example.com");
+        user2.setScore(200);
+        userRepository.save(user2);
+    
+        // Debug: Print all users in the database
+        System.out.println("All users in the database:");
+        userRepository.findAll().forEach(System.out::println);
+    
+        // Test retrieving top users by score
+        mockMvc.perform(get("/api/users/top-users"))
+                .andDo(MockMvcResultHandlers.print()) // Print the response for debugging
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].username").value("ryan_teo"))
+                .andExpect(jsonPath("$[0].score").value(30000))
+                .andExpect(jsonPath("$[1].username").value("john_doe"))
+                .andExpect(jsonPath("$[1].score").value(20000));
     }
 }
