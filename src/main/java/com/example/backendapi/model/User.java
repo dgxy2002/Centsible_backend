@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.time.LocalDate;
+
 @Document(collection = "testUsers") // Maps this class to the MongoDB collection "users"
 public class User {
     @Id // Marks this field as the primary key
@@ -15,6 +17,8 @@ public class User {
     private List<String> connections = new ArrayList<>(); // Field for user connections
     private double budget;
     private int score;
+    private LocalDate lastLoginDate;
+    private int loginStreak;
 
     // Constructors
     public User() {}
@@ -24,6 +28,8 @@ public class User {
         this.email = email;
         this.score = 0;
         this.budget = 0.0;
+        this.loginStreak = 1;
+        this.lastLoginDate = LocalDate.now();
     }
 
     // Getters and Setters
@@ -91,6 +97,22 @@ public class User {
     // Method to decrement the score
     public void decrementScore(int points) {
         this.score -= points;
+    }
+
+    public LocalDate getLastLoginDate() {
+        return this.lastLoginDate;
+    }
+
+    public void setLastLoginDate(LocalDate newLoginDate) {
+        this.lastLoginDate = newLoginDate;
+    }
+
+    public int getLoginStreak() {
+        return this.loginStreak;
+    }
+
+    public void setLoginStreak(int newLoginStreak) {
+        this.loginStreak = newLoginStreak;
     }
 
     // toString() method (optional, for debugging)

@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import java.util.List;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/users")
@@ -157,6 +158,35 @@ public class UserController {
     @GetMapping("/top-users")
     public List<User> getTopUsersByScore() {
         return userRepository.findTopUsersByScore();
+    }
+
+    @PostMapping("/{userId}/login")
+    public ResponseEntity<String> login(@PathVariable String userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (user.getLastLoginDate() == null) {
+            // First login, start streak
+            user.setLoginStreak(1);
+            System.out.println("First login, streak set to: 1");
+        } else {
+            LocalDate lastLoginDate = user.getLastLoginDate();
+            LocalDate today = LocalDate.now();
+            if (lastLoginDate.isEqual(today.minusDays(1))) {
+                // User logged in yesterday, increment streak
+                user.setLoginStreak(user.getLoginStreak() + 1);
+                System.out.println("Streak incremented to: " + user.getLoginStreak());
+            } else if (!lastLoginDate.isEqual(today)) {
+                // User logged in after a break, reset streak
+                user.setLoginStreak(1);
+                System.out.println("Streak reset to: 1");
+            }
+        }
+        user.setLastLoginDate(LocalDate.now());
+        userRepository.save(user);
+        return new ResponseEntity<>("Login streak updated successfully!", HttpStatus.OK);
     }
 
 }
