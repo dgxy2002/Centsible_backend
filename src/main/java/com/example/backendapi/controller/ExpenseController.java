@@ -37,9 +37,6 @@ public class ExpenseController {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
 
-        // Set the creation date
-        expense.setCreatedDate(LocalDate.now()); // Set the current date as the creation date
-
         // Save the expense
         expenseRepository.save(expense);
         return new ResponseEntity<>("Expense saved successfully!", HttpStatus.CREATED);
