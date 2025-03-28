@@ -1,6 +1,7 @@
 package com.example.backendapi.controller;
 
 import com.example.backendapi.model.User;
+import com.example.backendapi.service.UserService;
 import com.example.backendapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private ExpenseRepository expenseRepository; // Autowire ExpenseRepository
@@ -160,33 +164,35 @@ public class UserController {
         return userRepository.findTopUsersByScore();
     }
 
-    @PostMapping("/{userId}/login")
-    public ResponseEntity<String> login(@PathVariable String userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+    // Login endpoint
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            User user = userService.login(request.getUsernameOrEmail(), request.getPassword());
+            return ResponseEntity.ok(Map.of(
+                "message", "Login successful",
+                "streak", user.getLoginStreak()
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
-
-        if (user.getLastLoginDate() == null) {
-            // First login, start streak
-            user.setLoginStreak(1);
-            System.out.println("First login, streak set to: 1");
-        } else {
-            LocalDate lastLoginDate = user.getLastLoginDate();
-            LocalDate today = LocalDate.now();
-            if (lastLoginDate.isEqual(today.minusDays(1))) {
-                // User logged in yesterday, increment streak
-                user.setLoginStreak(user.getLoginStreak() + 1);
-                System.out.println("Streak incremented to: " + user.getLoginStreak());
-            } else if (!lastLoginDate.isEqual(today)) {
-                // User logged in after a break, reset streak
-                user.setLoginStreak(1);
-                System.out.println("Streak reset to: 1");
-            }
-        }
-        user.setLastLoginDate(LocalDate.now());
-        userRepository.save(user);
-        return new ResponseEntity<>("Login streak updated successfully!", HttpStatus.OK);
     }
 
+    // Registration endpoint
+    @PostMapping("/register")
+    public ResponseEntity<User> register(@RequestBody User user) {
+        User newUser = userService.createUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+    }
+}
+
+class LoginRequest {
+    private String usernameOrEmail;
+    private String password;
+
+    // Getters and setters
+    public String getUsernameOrEmail() { return usernameOrEmail; }
+    public void setUsernameOrEmail(String usernameOrEmail) { this.usernameOrEmail = usernameOrEmail; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

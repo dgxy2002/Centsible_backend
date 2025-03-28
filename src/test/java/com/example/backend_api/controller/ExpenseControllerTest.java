@@ -10,6 +10,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -28,25 +30,27 @@ class ExpenseControllerTest {
 
     @Test
     void addExpense() throws Exception {
-        // Add a test user
-        User user = new User("testuser", "test@example.com");
+        // Add a test user with all required fields (including password)
+        User user = new User("testuser", "test@example.com", "password123");
         userRepository.save(user);
 
-        // Test adding a new expense
+        // Test adding a new expense with all required fields (including createdDate)
         mockMvc.perform(post("/api/expenses/post")
                 .contentType("application/json")
-                .content("{\"title\": \"Groceries\", \"amount\": \"100.50\", \"userId\": \"" + user.getId() + "\", \"category\": \"food\"}"))
+                .content("{\"title\": \"Groceries\", \"amount\": \"100.50\", \"userId\": \"" + user.getId() + 
+                        "\", \"category\": \"food\", \"createdDate\": \"2023-10-05\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(content().string("Expense saved successfully!"));
     }
 
     @Test
     void getExpensesByUser() throws Exception {
-        // Add a test user and expense
-        User user = new User("testuser", "test@example.com");
+        // Add a test user with all required fields
+        User user = new User("testuser", "test@example.com", "password123");
         userRepository.save(user);
 
-        Expense expense = new Expense("Groceries", "100.50", user.getId(), "food"); // No need to pass createdDate
+        // Create expense with all required fields including createdDate
+        Expense expense = new Expense("Groceries", "100.50", user.getId(), "food", LocalDate.now());
         expenseRepository.save(expense);
 
         // Test retrieving expenses for a user
@@ -58,28 +62,31 @@ class ExpenseControllerTest {
 
     @Test
     void updateExpense() throws Exception {
-        // Add a test user and expense
-        User user = new User("testuser", "test@example.com");
+        // Add a test user with all required fields
+        User user = new User("testuser", "test@example.com", "password123");
         userRepository.save(user);
 
-        Expense expense = new Expense("Groceries", "100.50", user.getId(), "food"); // No need to pass createdDate
+        // Create expense with all required fields
+        Expense expense = new Expense("Groceries", "100.50", user.getId(), "food", LocalDate.now());
         expenseRepository.save(expense);
 
         // Test updating the expense
         mockMvc.perform(put("/api/expenses/" + expense.getId())
                 .contentType("application/json")
-                .content("{\"title\": \"Updated Groceries\", \"amount\": \"150.00\", \"userId\": \"" + user.getId() + "\", \"category\": \"food\"}"))
+                .content("{\"title\": \"Updated Groceries\", \"amount\": \"150.00\", \"userId\": \"" + user.getId() + 
+                        "\", \"category\": \"food\", \"createdDate\": \"2023-10-05\"}"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Expense updated successfully!"));
     }
 
     @Test
     void deleteExpense() throws Exception {
-        // Add a test user and expense
-        User user = new User("testuser", "test@example.com");
+        // Add a test user with all required fields
+        User user = new User("testuser", "test@example.com", "password123");
         userRepository.save(user);
 
-        Expense expense = new Expense("Groceries", "100.50", user.getId(), "food"); // No need to pass createdDate
+        // Create expense with all required fields
+        Expense expense = new Expense("Groceries", "100.50", user.getId(), "food", LocalDate.now());
         expenseRepository.save(expense);
 
         // Test deleting the expense

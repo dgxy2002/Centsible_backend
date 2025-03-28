@@ -14,6 +14,7 @@ public class User {
     private String id;
     private String username;
     private String email;
+    private String password;
     private List<String> connections = new ArrayList<>(); // Field for user connections
     private double budget;
     private int score;
@@ -23,9 +24,10 @@ public class User {
     // Constructors
     public User() {}
 
-    public User(String username, String email) {
+    public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
+        this.password = password;
         this.score = 0;
         this.budget = 0.0;
         this.loginStreak = 1;
@@ -47,6 +49,14 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getEmail() {
