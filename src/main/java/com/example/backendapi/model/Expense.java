@@ -15,12 +15,12 @@ public class Expense {
     private String category; // New field for expense category
     private LocalDate createdDate; // New field for creation date
 
-    public Expense(String title, String amount, String userId, String category) {
+    public Expense(String title, String amount, String userId, String category, LocalDate createdDate) {
         this.title = title;
         this.amount = amount;
         this.userId = userId;
         this.category = category;
-        this.createdDate = LocalDate.now(); 
+        this.createdDate = createdDate; 
     }
 
     public String getTitle() {

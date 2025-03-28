@@ -14,11 +14,11 @@ public class Income {
     private String userId;
     private LocalDate createdDate;
 
-    public Income(String title, String amount, String userId) {
+    public Income(String title, String amount, String userId, LocalDate createdDate) {
         this.title = title;
         this.amount = amount;
         this.userId = userId;
-        this.createdDate = LocalDate.now();
+        this.createdDate = createdDate;;
     }
 
     public String getTitle() {
