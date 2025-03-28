@@ -115,6 +115,13 @@ public class User {
         this.loginStreak = newLoginStreak;
     }
 
+    public double getRemainingBudget(List<CategoryAllocation> allocations) {
+        double totalAllocated = allocations.stream()
+                .mapToDouble(CategoryAllocation::getAllocatedAmount)
+                .sum();
+        return this.budget - totalAllocated;
+    }
+
     // toString() method (optional, for debugging)
     @Override
     public String toString() {
