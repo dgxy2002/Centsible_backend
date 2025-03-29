@@ -54,22 +54,74 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    // Add a connection between two users
-    @PostMapping("/{userId}/connections/{connectedUserId}")
-    public ResponseEntity<String> addConnection(@PathVariable String userId, @PathVariable String connectedUserId) {
-        User user = userRepository.findById(userId).orElse(null);
-        User connectedUser = userRepository.findById(connectedUserId).orElse(null);
-
-        if (user == null || connectedUser == null) {
+    // Send connection invitation
+    @PostMapping("/{inviterId}/invite/{inviteeId}")
+    public ResponseEntity<String> sendConnectionInvitation(
+            @PathVariable String inviterId,
+            @PathVariable String inviteeId) {
+        
+        // Check if users exist
+        User inviter = userRepository.findById(inviterId).orElse(null);
+        User invitee = userRepository.findById(inviteeId).orElse(null);
+        
+        if (inviter == null || invitee == null) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
-
-        // Add the connection
-        user.addConnection(connectedUserId);
-        userRepository.save(user);
-
-        return new ResponseEntity<>("Connection added successfully!", HttpStatus.OK);
+        
+        // Prevent self-invitation
+        if (inviterId.equals(inviteeId)) {
+            return new ResponseEntity<>("Cannot invite yourself", HttpStatus.BAD_REQUEST);
+        }
+        
+        // Check if already connected
+        if (invitee.getConnections().contains(inviterId)) {
+            return new ResponseEntity<>("Already connected", HttpStatus.BAD_REQUEST);
+        }
+        
+        // Check if invitation already exists
+        if (invitee.getPendingInvitations().contains(inviterId)) {
+            return new ResponseEntity<>("Invitation already sent", HttpStatus.BAD_REQUEST);
+        }
+        
+        // Add to pending invitations
+        invitee.addPendingInvitation(inviterId);
+        userRepository.save(invitee);
+        
+        return new ResponseEntity<>("Invitation sent successfully", HttpStatus.OK);
     }
+
+// Respond to invitation
+@PutMapping("/{userId}/respond-invitation/{inviterId}")
+public ResponseEntity<String> respondToInvitation(
+        @PathVariable String userId,
+        @PathVariable String inviterId,
+        @RequestParam boolean accept) {
+    
+    User user = userRepository.findById(userId).orElse(null);
+    User inviter = userRepository.findById(inviterId).orElse(null);
+    
+    if (user == null || inviter == null) {
+        return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+    }
+    
+    if (!user.getPendingInvitations().contains(inviterId)) {
+        return new ResponseEntity<>("No pending invitation", HttpStatus.BAD_REQUEST);
+    }
+    
+    // Remove from pending regardless of response
+    user.removePendingInvitation(inviterId);
+    userRepository.save(user);
+    
+    if (accept) {
+        // Add mutual connection
+        user.addConnection(inviterId);
+        inviter.addConnection(userId);
+        
+        userRepository.saveAll(List.of(user, inviter));
+    }
+    
+    return new ResponseEntity<>(accept ? "Invitation accepted" : "Invitation declined", HttpStatus.OK);
+}
 
     // Get all connections for a user
     @GetMapping("/{userId}/connections")
@@ -128,7 +180,33 @@ public class UserController {
         return new ResponseEntity<>(budgetUsagePercentage, HttpStatus.OK);
     }
 
-        // Get a user's score
+    // Remove a connection
+    @DeleteMapping("/{userId}/connections/{connectionId}")
+    public ResponseEntity<String> removeConnection(
+            @PathVariable String userId,
+            @PathVariable String connectionId) {
+        
+        User user = userRepository.findById(userId).orElse(null);
+        User connection = userRepository.findById(connectionId).orElse(null);
+        
+        if (user == null || connection == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+        
+        if (!user.getConnections().contains(connectionId)) {
+            return new ResponseEntity<>("Connection does not exist", HttpStatus.BAD_REQUEST);
+        }
+        
+        // Remove mutual connection
+        user.removeConnection(connectionId);
+        connection.removeConnection(userId);
+        
+        userRepository.saveAll(List.of(user, connection));
+        
+        return new ResponseEntity<>("Connection removed successfully", HttpStatus.OK);
+    }
+
+    // Get a user's score
     @GetMapping("/{userId}/score")
     public ResponseEntity<Integer> getScore(@PathVariable String userId) {
         User user = userRepository.findById(userId).orElse(null);

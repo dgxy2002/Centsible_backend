@@ -16,6 +16,7 @@ public class User {
     private String username;
     private String password;
     private List<String> connections = new ArrayList<>(); // Field for user connections
+    private List<String> pendingInvitations = new ArrayList<>();
     private double budget;
     private int score;
     private LocalDate lastLoginDate;
@@ -121,6 +122,20 @@ public class User {
                 .mapToDouble(CategoryAllocation::getAllocatedAmount)
                 .sum();
         return this.budget - totalAllocated;
+    }
+
+    public void addPendingInvitation(String userId) {
+        if (!this.pendingInvitations.contains(userId)) {
+            this.pendingInvitations.add(userId);
+        }
+    }
+
+    public List<String> getPendingInvitations() {
+        return this.pendingInvitations;
+    }
+    
+    public void removePendingInvitation(String userId) {
+        this.pendingInvitations.remove(userId);
     }
 
     // toString() method (optional, for debugging)
