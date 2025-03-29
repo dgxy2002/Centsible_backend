@@ -9,7 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.BeforeEach;
 
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,10 +31,19 @@ class ExpenseControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @BeforeEach
+    void setup(){
+        mongoTemplate.dropCollection("testUniqueUsers");
+    }
+
     @Test
+    @WithMockUser
     void addExpense() throws Exception {
         // Add a test user with all required fields (including password)
-        User user = new User("testuser", "test@example.com", "password123");
+        User user = new User("testuser", "password123");
         userRepository.save(user);
 
         // Test adding a new expense with all required fields (including createdDate)
@@ -44,9 +56,10 @@ class ExpenseControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getExpensesByUser() throws Exception {
         // Add a test user with all required fields
-        User user = new User("testuser", "test@example.com", "password123");
+        User user = new User("testuser", "password123");
         userRepository.save(user);
 
         // Create expense with all required fields including createdDate
@@ -61,9 +74,10 @@ class ExpenseControllerTest {
     }
 
     @Test
+    @WithMockUser
     void updateExpense() throws Exception {
         // Add a test user with all required fields
-        User user = new User("testuser", "test@example.com", "password123");
+        User user = new User("testuser", "password123");
         userRepository.save(user);
 
         // Create expense with all required fields
@@ -80,9 +94,10 @@ class ExpenseControllerTest {
     }
 
     @Test
+    @WithMockUser
     void deleteExpense() throws Exception {
         // Add a test user with all required fields
-        User user = new User("testuser", "test@example.com", "password123");
+        User user = new User("testuser", "password123");
         userRepository.save(user);
 
         // Create expense with all required fields

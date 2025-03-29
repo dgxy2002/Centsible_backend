@@ -5,15 +5,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.springframework.data.mongodb.core.index.Indexed; // Import Indexed annotation
 import java.time.LocalDate;
 
-@Document(collection = "testUsers") // Maps this class to the MongoDB collection "users"
+@Document(collection = "testUniqueUsers") // Maps this class to the MongoDB collection "users"
 public class User {
     @Id // Marks this field as the primary key
     private String id;
+    @Indexed(unique=true)
     private String username;
-    private String email;
     private String password;
     private List<String> connections = new ArrayList<>(); // Field for user connections
     private double budget;
@@ -24,9 +24,8 @@ public class User {
     // Constructors
     public User() {}
 
-    public User(String username, String email, String password) {
+    public User(String username, String password) {
         this.username = username;
-        this.email = email;
         this.password = password;
         this.score = 0;
         this.budget = 0.0;
@@ -57,14 +56,6 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public List<String> getConnections() {
@@ -138,7 +129,6 @@ public class User {
         return "User{" +
                 "id='" + id + '\'' +
                 ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
                 ", connections=" + connections +
                 ", budget=" + budget +
                 '}';

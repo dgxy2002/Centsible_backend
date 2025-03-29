@@ -7,17 +7,24 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 @Service
 public class UserService {
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     // Authenticate user and update login streak
-    public User login(String usernameOrEmail, String rawPassword) {
-        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail);
+    public User login(String username, String rawPassword) {
+        User user = userRepository.findByUsername(username);
         
-        if (user == null || !BCrypt.checkpw(rawPassword, user.getPassword())) {
+        if (user == null || !passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
@@ -44,7 +51,7 @@ public class UserService {
 
     // Create/register a new user (with password hashing)
     public User createUser(User user) {
-        String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+        String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
         return userRepository.save(user);
     }

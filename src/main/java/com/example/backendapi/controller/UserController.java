@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.backendapi.repository.ExpenseRepository; // Import ExpenseRepository
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.example.backendapi.security.JwtTokenProvider;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -20,10 +23,16 @@ import java.time.LocalDate;
 public class UserController {
 
     @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private ExpenseRepository expenseRepository; // Autowire ExpenseRepository
@@ -31,7 +40,7 @@ public class UserController {
     // Add a new user
     @PostMapping
     public ResponseEntity<String> addUser(@RequestBody User user) {
-        userRepository.save(user);
+        userService.createUser(user);
         return new ResponseEntity<>("User saved successfully!", HttpStatus.CREATED);
     }
 
@@ -168,9 +177,12 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            User user = userService.login(request.getUsernameOrEmail(), request.getPassword());
+            User user = userService.login(request.getUsername(), request.getPassword());
+            String token = jwtTokenProvider.generateToken(user.getUsername());
+            
             return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
+                "token", token,
                 "streak", user.getLoginStreak()
             ));
         } catch (RuntimeException e) {
@@ -180,19 +192,44 @@ public class UserController {
 
     // Registration endpoint
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
-        User newUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            // Check if username already exists
+            if (userRepository.existsByUsername(user.getUsername())) {
+                return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Username already exists"));
+            }
+            
+            User newUser = new User(user.getUsername(), passwordEncoder.encode(user.getPassword()));
+            userRepository.save(newUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+        } catch (Exception e) {
+            return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Registration failed: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/check-username/{username}")
+    public ResponseEntity<Map<String, Object>> checkUsernameAvailability(
+        @PathVariable String username) {
+        boolean isAvailable = !userRepository.existsByUsername(username);
+        
+        return ResponseEntity.ok(Map.of(
+            "username", username,
+            "available", isAvailable
+        ));
     }
 }
 
 class LoginRequest {
-    private String usernameOrEmail;
+    private String username;
     private String password;
 
     // Getters and setters
-    public String getUsernameOrEmail() { return usernameOrEmail; }
-    public void setUsernameOrEmail(String usernameOrEmail) { this.usernameOrEmail = usernameOrEmail; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 }
