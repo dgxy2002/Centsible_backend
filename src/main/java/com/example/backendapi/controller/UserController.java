@@ -261,7 +261,11 @@ public ResponseEntity<String> respondToInvitation(
             return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
                 "token", token,
-                "streak", user.getLoginStreak()
+                "streak", user.getLoginStreak(),
+                "id", user.getId(),
+                "username", user.getUsername(),
+                "connections", user.getConnections(),
+                "budget", user.getBudget()
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
