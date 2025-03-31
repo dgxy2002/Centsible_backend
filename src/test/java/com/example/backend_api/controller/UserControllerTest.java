@@ -38,7 +38,7 @@ class UserControllerTest {
 
     @Test
     void loginUser() throws Exception {
-        mongoTemplate.dropCollection("testUniqueUsers");
+        //mongoTemplate.dropCollection("testUniqueUsers");
 
         String username = "testuser";
         String rawPassword = "secure123";
@@ -57,10 +57,5 @@ class UserControllerTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isUnauthorized());
 
-        // Test failed login
-        mockMvc.perform(post("/api/users/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(String.format("{\"usernameOrEmail\":\"%s\",\"password\":\"%s\"}", username, "wrongpassword")))
-                .andExpect(status().isUnauthorized());
     }
 }

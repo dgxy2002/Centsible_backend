@@ -285,7 +285,7 @@ public ResponseEntity<String> respondToInvitation(
             
             User newUser = new User(user.getUsername(), passwordEncoder.encode(user.getPassword()));
             userRepository.save(newUser);
-            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "User registered successfully"));
         } catch (Exception e) {
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
