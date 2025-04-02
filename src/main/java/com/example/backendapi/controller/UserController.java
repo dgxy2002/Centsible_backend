@@ -3,12 +3,17 @@ package com.example.backendapi.controller;
 import com.example.backendapi.model.User;
 import com.example.backendapi.service.UserService;
 import com.example.backendapi.repository.UserRepository;
+import com.example.backendapi.model.Notification;
+import com.example.backendapi.repository.NotificationRepository;
+import com.example.backendapi.model.Expense;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.backendapi.repository.ExpenseRepository; // Import ExpenseRepository
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import org.springframework.security.core.Authentication;
 
 import com.example.backendapi.security.JwtTokenProvider;
 
@@ -35,7 +40,10 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private ExpenseRepository expenseRepository; // Autowire ExpenseRepository
+    private ExpenseRepository expenseRepository; 
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     // Add a new user
     @PostMapping
@@ -84,48 +92,49 @@ public class UserController {
         }
         
         // Add to pending invitations
-        invitee.addPendingInvitation(inviterId);
+        invitee.addPendingInvitation(inviterId, inviter.getUsername());
         userRepository.save(invitee);
         
         return new ResponseEntity<>("Invitation sent successfully", HttpStatus.OK);
     }
 
-// Respond to invitation
-@PutMapping("/{userId}/respond-invitation/{inviterId}")
-public ResponseEntity<String> respondToInvitation(
-        @PathVariable String userId,
-        @PathVariable String inviterId,
-        @RequestParam boolean accept) {
-    
-    User user = userRepository.findById(userId).orElse(null);
-    User inviter = userRepository.findById(inviterId).orElse(null);
-    
-    if (user == null || inviter == null) {
-        return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-    }
-    
-    if (!user.getPendingInvitations().contains(inviterId)) {
-        return new ResponseEntity<>("No pending invitation", HttpStatus.BAD_REQUEST);
-    }
-    
-    // Remove from pending regardless of response
-    user.removePendingInvitation(inviterId);
-    userRepository.save(user);
-    
-    if (accept) {
-        // Add mutual connection
-        user.addConnection(inviterId);
-        inviter.addConnection(userId);
+    // Respond to invitation
+    @PutMapping("/{userId}/respond-invitation/{inviterId}")
+    public ResponseEntity<String> respondToInvitation(
+            @PathVariable String userId,
+            @PathVariable String inviterId,
+            @RequestParam boolean accept) {
         
-        userRepository.saveAll(List.of(user, inviter));
+        User user = userRepository.findById(userId).orElse(null);
+        User inviter = userRepository.findById(inviterId).orElse(null);
+        
+        if (user == null || inviter == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+        
+        if (!user.getPendingInvitations().contains(Map.of(inviterId, inviter.getUsername()))) {
+            return new ResponseEntity<>("No pending invitation", HttpStatus.BAD_REQUEST);
+        }
+        
+        // Remove from pending regardless of response
+        user.removePendingInvitation(inviterId, inviter.getUsername());
+        userRepository.save(user);
+        
+        if (accept) {
+            // Add mutual connection
+            user.addConnection(inviterId, inviter.getUsername());
+            inviter.addConnection(userId, user.getUsername());
+            user.addParentId(inviterId);
+            
+            userRepository.saveAll(List.of(user, inviter));
+        }
+        
+        return new ResponseEntity<>(accept ? "Invitation accepted" : "Invitation declined", HttpStatus.OK);
     }
-    
-    return new ResponseEntity<>(accept ? "Invitation accepted" : "Invitation declined", HttpStatus.OK);
-}
 
     // Get all connections for a user
     @GetMapping("/{userId}/connections")
-    public ResponseEntity<List<String>> getConnections(@PathVariable String userId) {
+    public ResponseEntity<List<Map<String, String>>> getConnections(@PathVariable String userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -193,13 +202,19 @@ public ResponseEntity<String> respondToInvitation(
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         
-        if (!user.getConnections().contains(connectionId)) {
+        if (!user.getConnections().contains(Map.of(connectionId, connection.getUsername()))) {
             return new ResponseEntity<>("Connection does not exist", HttpStatus.BAD_REQUEST);
         }
         
         // Remove mutual connection
-        user.removeConnection(connectionId);
-        connection.removeConnection(userId);
+        user.removeConnection(connectionId, connection.getUsername());
+        connection.removeConnection(userId, user.getUsername());
+
+        if (user.getParentId() != null && user.getParentId().contains(connectionId)) {
+            user.getParentId().remove(connectionId); // Remove parent ID if it's the connection being removed
+        } else if (connection.getParentId() != null && connection.getParentId().contains(userId)) {
+            connection.getParentId().remove(userId); // Remove parent ID if it's the user being removed
+        }
         
         userRepository.saveAll(List.of(user, connection));
         
@@ -302,6 +317,41 @@ public ResponseEntity<String> respondToInvitation(
             "username", username,
             "available", isAvailable
         ));
+    }
+
+    @GetMapping("/{userId}/notifications") 
+    public ResponseEntity<List<Notification>> getRecentNotifications(
+        @PathVariable String userId) { 
+        
+        // // Authentication check
+        // if (!authenticatedUserMatches(userId, authentication)) {
+        //     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        // }
+        
+        LocalDate oneWeekAgo = LocalDate.now().minusDays(7);
+        List<Notification> notifications = notificationRepository
+            .findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, oneWeekAgo);
+        
+        return ResponseEntity.ok(notifications);
+    }
+
+    @GetMapping("/{userId}/pending-invitations")
+    public ResponseEntity<List<Map<String, String>>> getPendingInvitations(
+            @PathVariable String userId) {
+        
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        
+        return new ResponseEntity<>(user.getPendingInvitations(), HttpStatus.OK);
+    }
+
+    // Get unread count
+    @GetMapping("/{userId}/notifications/unread-count")
+    public ResponseEntity<Long> getUnreadCount(@PathVariable String userId) {
+        long count = notificationRepository.countByUserIdAndReadFalse(userId);
+        return ResponseEntity.ok(count);
     }
 }
 

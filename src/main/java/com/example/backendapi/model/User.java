@@ -8,6 +8,8 @@ import java.util.List;
 import org.springframework.data.mongodb.core.index.Indexed; // Import Indexed annotation
 import java.time.LocalDate;
 
+import java.util.Map; 
+
 @Document(collection = "testUniqueUsers") // Maps this class to the MongoDB collection "users"
 public class User {
     @Id // Marks this field as the primary key
@@ -15,12 +17,13 @@ public class User {
     @Indexed(unique=true)
     private String username;
     private String password;
-    private List<String> connections = new ArrayList<>(); // Field for user connections
-    private List<String> pendingInvitations = new ArrayList<>();
+    private List<Map<String,String>> connections = new ArrayList<>(); // Field for user connections
+    private List<Map<String, String>> pendingInvitations = new ArrayList<>();
     private double budget;
     private int score;
     private LocalDate lastLoginDate;
     private int loginStreak;
+    private List<String> parentId;
 
     // Constructors
     public User() {}
@@ -32,6 +35,7 @@ public class User {
         this.budget = 0.0;
         this.loginStreak = 1;
         this.lastLoginDate = LocalDate.now();
+        this.parentId = new ArrayList<>();
     }
 
     // Getters and Setters
@@ -59,12 +63,8 @@ public class User {
         this.password = password;
     }
 
-    public List<String> getConnections() {
+    public List<Map<String, String>> getConnections() {
         return connections;
-    }
-
-    public void setConnections(List<String> connections) {
-        this.connections = connections;
     }
 
     public double getBudget() {
@@ -75,12 +75,12 @@ public class User {
         this.budget = budget;
     }
 
-    public void addConnection(String userId) {
-        this.connections.add(userId);
+    public void addConnection(String userId, String username) {
+        this.connections.add(Map.of(userId, username));
     }
 
-    public void removeConnection(String userId) {
-        this.connections.remove(userId);
+    public void removeConnection(String userId, String username) {
+        this.connections.remove(Map.of(userId, username));
     }
 
     public int getScore() {
@@ -124,18 +124,30 @@ public class User {
         return this.budget - totalAllocated;
     }
 
-    public void addPendingInvitation(String userId) {
-        if (!this.pendingInvitations.contains(userId)) {
-            this.pendingInvitations.add(userId);
+    public void addPendingInvitation(String userId, String username) {
+        if (!this.pendingInvitations.contains(Map.of(userId, username))) {
+            this.pendingInvitations.add(Map.of(userId, username));
         }
     }
 
-    public List<String> getPendingInvitations() {
+    public List<Map<String, String>> getPendingInvitations() {
         return this.pendingInvitations;
     }
     
-    public void removePendingInvitation(String userId) {
-        this.pendingInvitations.remove(userId);
+    public void removePendingInvitation(String userId, String username) {
+        this.pendingInvitations.remove(Map.of(userId, username));
+    }
+
+    public List<String> getParentId() {
+        if (this.parentId == null){
+            return null;
+        } else {
+            return this.parentId;
+        }
+    }
+
+    public void addParentId(String parentId) {
+        this.parentId.add(parentId);
     }
 
     // toString() method (optional, for debugging)

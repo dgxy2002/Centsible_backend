@@ -40,7 +40,7 @@ class UserControllerTest {
     void loginUser() throws Exception {
         //mongoTemplate.dropCollection("testUniqueUsers");
 
-        String username = "testuser";
+        String username = "testuserSpecific";
         String rawPassword = "secure123";
         
         User user = new User(username, passwordEncoder.encode(rawPassword));

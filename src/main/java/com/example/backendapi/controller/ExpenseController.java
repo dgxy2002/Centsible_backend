@@ -2,6 +2,8 @@ package com.example.backendapi.controller;
 
 import com.example.backendapi.model.Expense;
 import com.example.backendapi.model.User;
+import com.example.backendapi.model.Notification;
+import com.example.backendapi.repository.NotificationRepository;
 import com.example.backendapi.repository.ExpenseRepository;
 import com.example.backendapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,9 @@ public class ExpenseController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
     // Add a new expense for a specific user
     @PostMapping("/post")
     public ResponseEntity<String> addExpense(@RequestBody Expense expense) {
@@ -37,9 +42,33 @@ public class ExpenseController {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
 
+        // Notify all connections
+        notifyConnections(user, expense);
+
         // Save the expense
         expenseRepository.save(expense);
         return new ResponseEntity<>("Expense saved successfully!", HttpStatus.CREATED);
+    }
+
+    private void notifyConnections(User user, Expense expense) {
+    // Only notify if this user has a parent
+    if (user.getParentId() != null) {
+        for (String parentId : user.getParentId()){
+            Notification notification = new Notification();
+            notification.setUserId(parentId); // Notify the parent
+            notification.setMessage(user.getUsername() + " logged a new expense: " + 
+                expense.getTitle() + " ($" + expense.getAmount() + ")");
+            notification.setSenderUsername(user.getUsername());
+            
+            notificationRepository.save(notification);
+        }
+            // // Optional: Real-time notification via WebSocket
+            // messagingTemplate.convertAndSendToUser(
+            //     user.getParentId(),
+            //     "/queue/notifications",
+            //     notification.getMessage()
+            // );
+        }
     }
 
     // Get all expenses for a specific user
