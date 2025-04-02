@@ -331,7 +331,10 @@ public class UserController {
         LocalDate oneWeekAgo = LocalDate.now().minusDays(7);
         List<Notification> notifications = notificationRepository
             .findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, oneWeekAgo);
-        
+        for (Notification notification : notifications) {
+            notification.setRead(true); // Mark as read
+            notificationRepository.save(notification); // Save the updated notification
+        }
         return ResponseEntity.ok(notifications);
     }
 

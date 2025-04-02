@@ -16,4 +16,8 @@ public class Notification {
     private String senderUsername;
     private LocalDateTime createdAt = LocalDateTime.now();
     private boolean read = false;
+
+    public void setRead(boolean read) {
+        this.read = read;
+    }
 }
