@@ -276,11 +276,8 @@ public class UserController {
             return ResponseEntity.ok(Map.of(
                 "message", "Login successful",
                 "token", token,
-                "streak", user.getLoginStreak(),
                 "id", user.getId(),
-                "username", user.getUsername(),
-                "connections", user.getConnections(),
-                "budget", user.getBudget()
+                "username", user.getUsername()
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
