@@ -10,11 +10,11 @@ public class Income {
     @Id // Marks this field as the primary key
     private String id;
     private String title;
-    private String amount;
+    private Double amount;
     private String userId;
     private LocalDate createdDate;
 
-    public Income(String title, String amount, String userId, LocalDate createdDate) {
+    public Income(String title, Double amount, String userId, LocalDate createdDate) {
         this.title = title;
         this.amount = amount;
         this.userId = userId;
@@ -37,11 +37,11 @@ public class Income {
         this.id = id;
     }
 
-    public String getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(String amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 

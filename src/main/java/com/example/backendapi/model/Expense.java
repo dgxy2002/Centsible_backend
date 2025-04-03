@@ -10,12 +10,12 @@ public class Expense {
     @Id // Marks this field as the primary key
     private String id;
     private String title;
-    private String amount;
+    private Double amount;
     private String userId; // Reference to the user who created this expense
     private String category; // New field for expense category
     private LocalDate createdDate; // New field for creation date
 
-    public Expense(String title, String amount, String userId, String category, LocalDate createdDate) {
+    public Expense(String title, Double amount, String userId, String category, LocalDate createdDate) {
         this.title = title;
         this.amount = amount;
         this.userId = userId;
@@ -39,11 +39,11 @@ public class Expense {
         this.id = id;
     }
 
-    public String getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(String amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 

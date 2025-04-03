@@ -39,7 +39,7 @@ class IncomeControllerTest {
     @WithMockUser
     void getIncomesByUser() throws Exception {
         // Add a test income with createdDate
-        Income income = new Income("Salary", "5000.00", "67d3d20a29d0cd06ab44add8", LocalDate.now());
+        Income income = new Income("Salary", 5000.00, "67d3d20a29d0cd06ab44add8", LocalDate.now());
         incomeRepository.save(income);
 
         // Test retrieving incomes for a user
@@ -51,14 +51,14 @@ class IncomeControllerTest {
     @WithMockUser
     void getIncomeById() throws Exception {
         // Add a test income with createdDate
-        Income income = new Income("Salary", "5000.00", "67d3d20a29d0cd06ab44add8", LocalDate.now());
+        Income income = new Income("Salary", 5000.00, "67d3d20a29d0cd06ab44add8", LocalDate.now());
         incomeRepository.save(income);
 
         // Test retrieving an income by ID
         mockMvc.perform(get("/api/incomes/" + income.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Salary"))
-                .andExpect(jsonPath("$.amount").value("5000.00"))
+                .andExpect(jsonPath("$.amount").value(5000.00))
                 .andExpect(jsonPath("$.createdDate").exists());
     }
 
@@ -66,7 +66,7 @@ class IncomeControllerTest {
     @WithMockUser
     void updateIncome() throws Exception {
         // Add a test income with createdDate
-        Income income = new Income("Salary", "5000.00", "67d3d20a29d0cd06ab44add8", LocalDate.now());
+        Income income = new Income("Salary", 5000.00, "67d3d20a29d0cd06ab44add8", LocalDate.now());
         incomeRepository.save(income);
 
         // Test updating the income (include createdDate in update)
@@ -81,7 +81,7 @@ class IncomeControllerTest {
     @WithMockUser
     void deleteIncome() throws Exception {
         // Add a test income with createdDate
-        Income income = new Income("Salary", "5000.00", "67d3d20a29d0cd06ab44add8", LocalDate.now());
+        Income income = new Income("Salary", 5000.00, "67d3d20a29d0cd06ab44add8", LocalDate.now());
         incomeRepository.save(income);
 
         // Test deleting the income
