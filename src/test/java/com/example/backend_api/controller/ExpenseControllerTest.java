@@ -47,8 +47,8 @@ class ExpenseControllerTest {
 
         mockMvc.perform(post("/api/expenses/post")
                 .contentType("application/json")
-                .content("{\"title\": \"Groceries\", \"amount\": \"100.50\", \"userId\": \"" + user.getId() + 
-                        "\", \"category\": \"food\", \"createdDate\": \"2023-10-05\"}"))
+                .content("{\"title\": \"Groceries\", \"amount\": \"234.5\", \"userId\": \"" + user.getId() + 
+                        "\", \"category\": \"food\", \"createdDate\": \"2020-10-05\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(content().string("Expense saved successfully!"));
     }
@@ -59,13 +59,13 @@ class ExpenseControllerTest {
         User user = getOrCreateTestUser();
 
         if (expenseRepository.findByUserId(user.getId()).isEmpty()) {
-            expenseRepository.save(new Expense("Groceries", 100.50, user.getId(), "food", LocalDate.now()));
+            expenseRepository.save(new Expense("Groceries", 234.5, user.getId(), "food", LocalDate.now()));
         }
 
         mockMvc.perform(get("/api/expenses/user/" + user.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Groceries"))
-                .andExpect(jsonPath("$[0].amount").value(100.50));
+                .andExpect(jsonPath("$[0].amount").value(234.5));
     }
 
     @Test
@@ -75,7 +75,7 @@ class ExpenseControllerTest {
 
         List<Expense> expenses = expenseRepository.findByUserId(user.getId());
         Expense expense = expenses.isEmpty() ? 
-            expenseRepository.save(new Expense("Groceries", 100.50, user.getId(), "food", LocalDate.now())) :
+            expenseRepository.save(new Expense("Groceries", 234.5, user.getId(), "food", LocalDate.now())) :
             expenses.get(0);
 
         mockMvc.perform(put("/api/expenses/" + expense.getId())
@@ -93,7 +93,7 @@ class ExpenseControllerTest {
 
         List<Expense> expenses = expenseRepository.findByUserId(user.getId());
         Expense expense = expenses.isEmpty() ? 
-            expenseRepository.save(new Expense("Groceries", 100.50, user.getId(), "food", LocalDate.now())) :
+            expenseRepository.save(new Expense("Groceries", 234.5, user.getId(), "food", LocalDate.now())) :
             expenses.get(0);
 
         mockMvc.perform(delete("/api/expenses/" + expense.getId()))

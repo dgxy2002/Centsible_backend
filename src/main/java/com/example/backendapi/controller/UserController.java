@@ -63,37 +63,40 @@ public class UserController {
     }
 
     // Send connection invitation
-    @PostMapping("/{inviterId}/invite/{inviteeId}")
+    @PostMapping("/{inviterUsername}/invite/{inviteeUsername}")
     public ResponseEntity<String> sendConnectionInvitation(
-            @PathVariable String inviterId,
-            @PathVariable String inviteeId) {
+            @PathVariable String inviterUsername,
+            @PathVariable String inviteeUsername) {
         
         // Check if users exist
-        User inviter = userRepository.findById(inviterId).orElse(null);
-        User invitee = userRepository.findById(inviteeId).orElse(null);
+        User inviterObj = userRepository.findByUsername(inviterUsername);
+        User inviteeObj = userRepository.findByUsername(inviteeUsername);
+
+        String inviterId = inviterObj != null ? inviterObj.getId() : null;
+        String inviteeId = inviteeObj != null ? inviteeObj.getId() : null;
         
-        if (inviter == null || invitee == null) {
+        if (inviterId == null || inviteeId == null) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         
         // Prevent self-invitation
-        if (inviterId.equals(inviteeId)) {
+        if (inviterUsername.equals(inviteeUsername)) {
             return new ResponseEntity<>("Cannot invite yourself", HttpStatus.BAD_REQUEST);
         }
         
         // Check if already connected
-        if (invitee.getConnections().contains(inviterId)) {
+        if (inviteeObj.getConnections().contains(Map.of(inviterId, inviterUsername))) {
             return new ResponseEntity<>("Already connected", HttpStatus.BAD_REQUEST);
         }
         
         // Check if invitation already exists
-        if (invitee.getPendingInvitations().contains(inviterId)) {
+        if (inviteeObj.getPendingInvitations().contains(Map.of(inviterId, inviterUsername))) {
             return new ResponseEntity<>("Invitation already sent", HttpStatus.BAD_REQUEST);
         }
         
         // Add to pending invitations
-        invitee.addPendingInvitation(inviterId, inviter.getUsername());
-        userRepository.save(invitee);
+        inviteeObj.addPendingInvitation(inviterId, inviterUsername);
+        userRepository.save(inviteeObj);
         
         return new ResponseEntity<>("Invitation sent successfully", HttpStatus.OK);
     }

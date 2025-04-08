@@ -10,6 +10,7 @@ public class CategoryAllocation {
     private String userId;
     private String category;
     private double allocatedAmount;
+    // amount spent in the category
 
     // Constructors
     public CategoryAllocation() {}

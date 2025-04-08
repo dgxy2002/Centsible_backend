@@ -234,7 +234,7 @@ public class ExpenseController {
         try {
             // Calculate the percentage of budget used for each category
             for (ExpenseRepository.CategoryTotal category : categoryTotals) {
-                String categoryName = category.getCategory() == null ? "Uncategorized" : category.getCategory();
+                String categoryName = category.getCategory() == null ? "Others" : category.getCategory();
                 double percentage = (category.getTotal() / budget) * 100;
                 result.put(categoryName, percentage);
             }
