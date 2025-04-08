@@ -28,6 +28,12 @@ public interface ExpenseRepository extends MongoRepository<Expense, String> {
     })
     List<CategoryTotal> getTotalExpensesByCategoryForUser(String userId);
 
+    @Aggregation(pipeline = {
+        "{ $match: { userId: ?0, category: ?1 } }",
+        "{ $group: { _id: null, total: { $sum: { $toDouble: '$amount' } } } }"
+    })
+    Double getTotalExpensesByCategoryForUser(String userId, String category);    
+
     // Interface to represent the result of the aggregation
     interface CategoryTotal {
         String getCategory(); // Category name

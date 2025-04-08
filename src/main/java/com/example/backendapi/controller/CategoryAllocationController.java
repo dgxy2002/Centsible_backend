@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.backendapi.repository.ExpenseRepository; 
 import java.util.List;
 
 @RestController
@@ -19,6 +19,9 @@ public class CategoryAllocationController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ExpenseRepository expenseRepository;
 
     // Add or update a category allocation for a user
     @PostMapping
@@ -39,6 +42,7 @@ public class CategoryAllocationController {
             return new ResponseEntity<>("Category allocation updated successfully!", HttpStatus.OK);
         } else {
             // Save the new allocation
+            allocation.setSpentAmount(expenseRepository.getTotalExpensesByCategoryForUser(allocation.getUserId(), allocation.getCategory())); // Initialize spent amount to 0
             categoryAllocationRepository.save(allocation);
             return new ResponseEntity<>("Category allocation added successfully!", HttpStatus.CREATED);
         }

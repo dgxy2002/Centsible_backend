@@ -3,6 +3,13 @@ package com.example.backendapi.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.example.backendapi.repository.UserRepository;
+import com.example.backendapi.repository.ExpenseRepository; 
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+
+import java.util.Optional;
+
 @Document(collection = "categoryAllocations")
 public class CategoryAllocation {
     @Id
@@ -10,10 +17,13 @@ public class CategoryAllocation {
     private String userId;
     private String category;
     private double allocatedAmount;
-    // amount spent in the category
+    private double spentAmount = 0.0; 
 
-    // Constructors
-    public CategoryAllocation() {}
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ExpenseRepository expenseRepository;
 
     public CategoryAllocation(String userId, String category, double allocatedAmount) {
         this.userId = userId;
@@ -26,16 +36,8 @@ public class CategoryAllocation {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getUserId() {
         return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getCategory() {
@@ -54,13 +56,11 @@ public class CategoryAllocation {
         this.allocatedAmount = allocatedAmount;
     }
 
-    @Override
-    public String toString() {
-        return "CategoryAllocation{" +
-                "id='" + id + '\'' +
-                ", userId='" + userId + '\'' +
-                ", category='" + category + '\'' +
-                ", allocatedAmount=" + allocatedAmount +
-                '}';
+    public void setSpentAmount(double spentAmount) {
+        this.spentAmount = spentAmount;
+    }
+
+    public double getSpentAmount() {
+        return spentAmount;
     }
 }
