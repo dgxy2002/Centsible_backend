@@ -137,4 +137,29 @@ public class IncomeController {
 
         return new ResponseEntity<>(incomeForCurrentMonth, HttpStatus.OK);
     }
+
+    // Get all expenses for a specific user, year, and month
+    @GetMapping("/user/{userId}/year/{year}/month/{month}")
+    public ResponseEntity<List<Income>> getIncomeByUserYearAndMonth(
+            @PathVariable String userId,
+            @PathVariable int year,
+            @PathVariable int month) {
+        
+        // Check if the user exists
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // Fetch all expenses for the user
+        List<Income> allIncome = incomeRepository.findByUserId(userId);
+
+        // Filter expenses for the given year and month
+        List<Income> incomeForMonth = allIncome.stream()
+                .filter(income -> income.getCreatedDate().getYear() == year &&
+                                income.getCreatedDate().getMonthValue() == month)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(incomeForMonth, HttpStatus.OK);
+    }
 }
