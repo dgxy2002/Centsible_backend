@@ -102,34 +102,34 @@ public class UserController {
     }
 
     // Respond to invitation
-    @PutMapping("/{userId}/respond-invitation/{inviterId}")
+    @PutMapping("/{inviteeUsername}/respond-invitation/{inviterUsername}")
     public ResponseEntity<String> respondToInvitation(
-            @PathVariable String userId,
-            @PathVariable String inviterId,
+            @PathVariable String inviteeUsername,
+            @PathVariable String inviterUsername,
             @RequestParam boolean accept) {
         
-        User user = userRepository.findById(userId).orElse(null);
-        User inviter = userRepository.findById(inviterId).orElse(null);
+        User invitee = userRepository.findByUsername(inviteeUsername);
+        User inviter = userRepository.findByUsername(inviterUsername);
+
+        String inviterId = inviter != null ? inviter.getId() : null;
+        String inviteeId = invitee != null ? invitee.getId() : null;
         
-        if (user == null || inviter == null) {
+        if (invitee == null || inviter == null) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         
-        if (!user.getPendingInvitations().contains(Map.of(inviterId, inviter.getUsername()))) {
+        if (!invitee.getPendingInvitations().contains(Map.of(inviterId, inviterUsername))) {
             return new ResponseEntity<>("No pending invitation", HttpStatus.BAD_REQUEST);
         }
         
         // Remove from pending regardless of response
-        user.removePendingInvitation(inviterId, inviter.getUsername());
-        userRepository.save(user);
+        invitee.removePendingInvitation(inviterId, inviterUsername);
+        userRepository.save(invitee);
         
         if (accept) {
-            // Add mutual connection
-            user.addConnection(inviterId, inviter.getUsername());
-            inviter.addConnection(userId, user.getUsername());
-            user.addParentId(inviterId);
-            
-            userRepository.saveAll(List.of(user, inviter));
+            inviter.addConnection(inviteeId, inviteeUsername);
+            invitee.addParentId(inviterId);
+            userRepository.saveAll(List.of(invitee, inviter));
         }
         
         return new ResponseEntity<>(accept ? "Invitation accepted" : "Invitation declined", HttpStatus.OK);
@@ -211,15 +211,8 @@ public class UserController {
         
         // Remove mutual connection
         user.removeConnection(connectionId, connection.getUsername());
-        connection.removeConnection(userId, user.getUsername());
-
-        if (user.getParentId() != null && user.getParentId().contains(connectionId)) {
-            user.getParentId().remove(connectionId); // Remove parent ID if it's the connection being removed
-        } else if (connection.getParentId() != null && connection.getParentId().contains(userId)) {
-            connection.getParentId().remove(userId); // Remove parent ID if it's the user being removed
-        }
-        
-        userRepository.saveAll(List.of(user, connection));
+        connection.getParentId().remove(userId); // Remove parent ID if it's the user being removed
+        userRepository.save(user);
         
         return new ResponseEntity<>("Connection removed successfully", HttpStatus.OK);
     }

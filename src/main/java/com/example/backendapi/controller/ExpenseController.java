@@ -62,19 +62,11 @@ public class ExpenseController {
             
             notificationRepository.save(notification);
         }
-            // // Optional: Real-time notification via WebSocket
-            // messagingTemplate.convertAndSendToUser(
-            //     user.getParentId(),
-            //     "/queue/notifications",
-            //     notification.getMessage()
-            // );
         }
     }
 
-    // Get all expenses for a specific user
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Expense>> getExpensesByUser(@PathVariable String userId) {
-        // Check if the user exists
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
