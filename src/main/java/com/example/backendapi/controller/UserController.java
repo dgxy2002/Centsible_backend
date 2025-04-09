@@ -349,6 +349,30 @@ public class UserController {
         long count = notificationRepository.countByUserIdAndReadFalse(userId);
         return ResponseEntity.ok(count);
     }
+
+    @PostMapping("/{fromUsername}/nudge/{toUsername}")
+    public ResponseEntity<String> sendNudge(
+            @PathVariable String fromUsername,
+            @PathVariable String toUsername) {
+        
+        // Check if user exists
+        User toUser = userRepository.findByUsername(toUsername);
+        User fromUser = userRepository.findByUsername(fromUsername);
+        if (fromUser == null || toUser == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+        
+        String message = "Hey " + toUsername + "! " + fromUsername + " has nudged you, log an expense for the day!";
+
+        // Create and save notification
+        Notification notification = new Notification();
+        notification.setUserId(toUser.getId());
+        notification.setMessage(message);
+        notification.setSenderUsername(fromUsername); // or the sender's username
+        notificationRepository.save(notification);
+        
+        return new ResponseEntity<>("Nudge sent successfully", HttpStatus.OK);
+    }
 }
 
 class LoginRequest {
