@@ -156,6 +156,55 @@ public class ExpenseController {
         return new ResponseEntity<>(expensesForMonth, HttpStatus.OK);
     }
 
+    // Get all expenses for a specific user, year, and month
+    @GetMapping("/user/{userId}/year/{year}/month/{month}")
+    public ResponseEntity<List<Expense>> getExpensesByUserYearAndMonth(
+            @PathVariable String userId,
+            @PathVariable int year,
+            @PathVariable int month) {
+        
+        // Check if the user exists
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // Fetch all expenses for the user
+        List<Expense> allExpenses = expenseRepository.findByUserId(userId);
+
+        // Filter expenses for the given year and month
+        List<Expense> expensesForMonth = allExpenses.stream()
+                .filter(expense -> expense.getCreatedDate().getYear() == year &&
+                                expense.getCreatedDate().getMonthValue() == month)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(expensesForMonth, HttpStatus.OK);
+    }
+
+    // Get all expenses for a specific user in a given year
+    @GetMapping("/user/{userId}/year/{year}")
+    public ResponseEntity<List<Expense>> getExpensesByUserAndYear(
+            @PathVariable String userId,
+            @PathVariable int year) {
+        
+        // Check if the user exists
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // Fetch all expenses for the user
+        List<Expense> allExpenses = expenseRepository.findByUserId(userId);
+
+        // Filter expenses for the given year
+        List<Expense> expensesForYear = allExpenses.stream()
+                .filter(expense -> expense.getCreatedDate().getYear() == year)
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(expensesForYear, HttpStatus.OK);
+    }
+
+
     // Get all expenses for a specific user and the current month
     @GetMapping("/user/{userId}/current-month")
     public ResponseEntity<List<Expense>> getExpensesByUserForCurrentMonth(@PathVariable String userId) {

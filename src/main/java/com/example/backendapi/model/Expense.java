@@ -64,7 +64,7 @@ public class Expense {
     }
 
     public LocalDate getCreatedDate() {
-        return createdDate;
+        return this.createdDate;
     }
 
     public void setCreatedDate(LocalDate createdDate) {
