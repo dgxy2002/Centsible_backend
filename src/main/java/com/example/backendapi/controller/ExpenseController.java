@@ -3,8 +3,10 @@ package com.example.backendapi.controller;
 import com.example.backendapi.model.Expense;
 import com.example.backendapi.model.User;
 import com.example.backendapi.model.Notification;
+import com.example.backendapi.model.CategoryAllocation;
 import com.example.backendapi.repository.NotificationRepository;
 import com.example.backendapi.repository.ExpenseRepository;
+import com.example.backendapi.repository.CategoryAllocationRepository;
 import com.example.backendapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,9 @@ public class ExpenseController {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired
+    private CategoryAllocationRepository categoryAllocationRepository;
+
     // Add a new expense for a specific user
     @PostMapping("/post")
     public ResponseEntity<String> addExpense(@RequestBody Expense expense) {
@@ -42,8 +47,12 @@ public class ExpenseController {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
 
+        user.incrementScore(5);
+        userRepository.save(user); 
+
         // Notify all connections
         notifyConnections(user, expense);
+        updateAllocationSpent(user, expense);
 
         // Save the expense
         expenseRepository.save(expense);
@@ -51,17 +60,27 @@ public class ExpenseController {
     }
 
     private void notifyConnections(User user, Expense expense) {
-    // Only notify if this user has a parent
-    if (user.getParentId() != null) {
-        for (String parentId : user.getParentId()){
-            Notification notification = new Notification();
-            notification.setUserId(parentId); // Notify the parent
-            notification.setMessage(user.getUsername() + " logged a new expense: " + 
-                expense.getTitle() + " ($" + expense.getAmount() + ")");
-            notification.setSenderUsername(user.getUsername());
-            
-            notificationRepository.save(notification);
+        // Only notify if this user has a parent
+        if (user.getParentId() != null) {
+            for (String parentId : user.getParentId()){
+                Notification notification = new Notification();
+                notification.setUserId(parentId); // Notify the parent
+                notification.setMessage(user.getUsername() + " logged a new expense: " + 
+                    expense.getTitle() + " ($" + expense.getAmount() + ")");
+                notification.setSenderUsername(user.getUsername());
+                
+                notificationRepository.save(notification);
+            }
         }
+    }
+
+    private void updateAllocationSpent(User user, Expense expense) {
+        String category = expense.getCategory();
+        CategoryAllocation allocation = categoryAllocationRepository.findByUserIdAndCategory(user.getId(), category);
+        if (allocation != null) {
+            // Update the spent amount for the category
+            allocation.setSpentAmount(allocation.getSpentAmount() + expense.getAmount());
+            categoryAllocationRepository.save(allocation);
         }
     }
 

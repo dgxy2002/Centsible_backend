@@ -25,27 +25,25 @@ public class CategoryAllocationController {
 
     // Add or update a category allocation for a user
     @PostMapping
-    public ResponseEntity<String> addOrUpdateCategoryAllocation(@RequestBody CategoryAllocation allocation) {
-        // Check if the user exists
-        if (userRepository.findById(allocation.getUserId()).isEmpty()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<String> addOrUpdateCategoryAllocation(@RequestBody List<CategoryAllocation> allocations) {
+        
+        for (CategoryAllocation allocation : allocations) {
+            // Check if an allocation already exists for this user and category
+            CategoryAllocation existingAllocation = categoryAllocationRepository.findByUserIdAndCategory(
+                    allocation.getUserId(), allocation.getCategory());
 
-        // Check if an allocation already exists for this user and category
-        CategoryAllocation existingAllocation = categoryAllocationRepository.findByUserIdAndCategory(
-                allocation.getUserId(), allocation.getCategory());
-
-        if (existingAllocation != null) {
-            // Update the existing allocation
-            existingAllocation.setAllocatedAmount(allocation.getAllocatedAmount());
-            categoryAllocationRepository.save(existingAllocation);
-            return new ResponseEntity<>("Category allocation updated successfully!", HttpStatus.OK);
-        } else {
-            // Save the new allocation
-            allocation.setSpentAmount(expenseRepository.getTotalExpensesByCategoryForUser(allocation.getUserId(), allocation.getCategory())); // Initialize spent amount to 0
-            categoryAllocationRepository.save(allocation);
-            return new ResponseEntity<>("Category allocation added successfully!", HttpStatus.CREATED);
+            if (existingAllocation != null) {
+                // Update the existing allocation
+                existingAllocation.setAllocatedAmount(allocation.getAllocatedAmount());
+                categoryAllocationRepository.save(existingAllocation);
+            } else {
+                Double totalExpenses = expenseRepository.getTotalExpensesByCategoryForUser(allocation.getUserId(), allocation.getCategory());
+                double value = totalExpenses != null ? totalExpenses.doubleValue() : 0.0;
+                allocation.setSpentAmount(value);
+                categoryAllocationRepository.save(allocation);
+            }
         }
+        return new ResponseEntity<>("Category allocation updated successfully!", HttpStatus.OK);
     }
 
     // Get all category allocations for a specific user
