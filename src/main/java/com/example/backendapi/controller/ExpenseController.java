@@ -270,39 +270,73 @@ public class ExpenseController {
     }
 
     @GetMapping("/user/{userId}/percent-per-category")
-    public ResponseEntity<?> getPercentByCategoryForUser(@PathVariable String userId) {
-        // Check if the user exists
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-    
-        // Get the user's budget
-        Double budget = user.getBudget();
-    
-        // Handle zero budget
-        if (budget == 0) {
-            return new ResponseEntity<>("Budget is zero", HttpStatus.OK);
-        }
-    
-        // Calculate total expenses by category for the user
-        List<ExpenseRepository.CategoryTotal> categoryTotals = expenseRepository.getTotalExpensesByCategoryForUser(userId);
-    
-        // Create a mutable map to store the results
-        Map<String, Double> result = new HashMap<>();
-    
-        try {
-            // Calculate the percentage of budget used for each category
-            for (ExpenseRepository.CategoryTotal category : categoryTotals) {
-                String categoryName = category.getCategory() == null ? "Others" : category.getCategory();
-                double percentage = (category.getTotal() / budget) * 100;
-                result.put(categoryName, percentage);
+        public ResponseEntity<?> getPercentByCategoryForUser(@PathVariable String userId) {
+            // Check if the user exists
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
             }
-    
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("An error occurred while processing your request: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        
+            // Get the user's budget
+            Double budget = user.getBudget();
+        
+            // Handle zero budget
+            if (budget == 0) {
+                return new ResponseEntity<>("Budget is zero", HttpStatus.OK);
+            }
+        
+            // Calculate total expenses by category for the user
+            List<ExpenseRepository.CategoryTotal> categoryTotals = expenseRepository.getTotalExpensesByCategoryForUser(userId);
+        
+            // Create a mutable map to store the results
+            Map<String, Double> result = new HashMap<>();
+        
+            try {
+                // Calculate the percentage of budget used for each category
+                for (ExpenseRepository.CategoryTotal category : categoryTotals) {
+                    String categoryName = category.getCategory() == null ? "Others" : category.getCategory();
+                    double percentage = (category.getTotal() / budget) * 100;
+                    result.put(categoryName, percentage);
+                }
+        
+                return new ResponseEntity<>(result, HttpStatus.OK);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ResponseEntity<>("An error occurred while processing your request: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
-    }
+
+        @GetMapping("/user/{userId}/year/{year}/month/{month}/total-by-category")
+        public ResponseEntity<?> getTotalExpensesByCategoryForUserByMonth(
+                @PathVariable String userId,
+                @PathVariable int year,
+                @PathVariable int month) {
+
+            // Check if the user exists
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            // Get all expenses for the user
+            List<Expense> allExpenses = expenseRepository.findByUserId(userId);
+
+            // Filter by year and month
+            List<Expense> filteredExpenses = allExpenses.stream()
+                    .filter(expense -> {
+                        LocalDate date = expense.getCreatedDate();
+                        return date != null && date.getYear() == year && date.getMonthValue() == month;
+                    })
+                    .toList();
+
+            // Group and total by category
+            Map<String, Double> totalsByCategory = filteredExpenses.stream()
+                    .collect(Collectors.groupingBy(
+                            expense -> expense.getCategory() == null ? "Uncategorized" : expense.getCategory(),
+                            Collectors.summingDouble(expense -> expense.getAmount() == null ? 0 : expense.getAmount())
+                    ));
+
+            return new ResponseEntity<>(totalsByCategory, HttpStatus.OK);
+        }
+
 }
