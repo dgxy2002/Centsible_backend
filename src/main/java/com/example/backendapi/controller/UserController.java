@@ -370,6 +370,9 @@ public class UserController {
         notification.setMessage(message);
         notification.setSenderUsername(fromUsername); // or the sender's username
         notificationRepository.save(notification);
+
+        fromUser.incrementScore(5);
+        userRepository.save(fromUser);
         
         return new ResponseEntity<>("Nudge sent successfully", HttpStatus.OK);
     }
