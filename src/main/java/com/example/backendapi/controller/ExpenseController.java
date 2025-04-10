@@ -49,7 +49,7 @@ public class ExpenseController {
 
         user.incrementScore(5);
         userRepository.save(user); 
-        
+
         notifyConnections(user, expense);  // Notify all connections
 
         updateAllocationSpent(user, expense);
@@ -66,7 +66,7 @@ public class ExpenseController {
                 Notification notification = new Notification();
                 notification.setUserId(parentId); // Notify the parent
                 String title = expense.getTitle() == null ? "" : " " + expense.getTitle();
-                if (expense.getAmount() > 1000) {
+                if (checkAmount(user.getId(), expense.getAmount())) {
                     notification.setCategory("warning"); // Set category to warning for extraordinary expenses
                     notification.setMessage("Warning! " + user.getUsername() + " logged an unusual expense:" + 
                     title + " ($" + expense.getAmount() + ")");
@@ -79,6 +79,27 @@ public class ExpenseController {
             }
         }
     }
+
+    private boolean checkAmount(String userId, double amount) {
+        List<Expense> expenses = expenseRepository.findByUserId(userId);
+        if (expenses.size() < 30) {
+            if (amount < 1000) {return false;}
+            return true; // No previous expenses to compare with
+        }
+        double sum = 0.0;
+        for (Expense expense : expenses) {
+            sum += expense.getAmount();
+        }
+        double mean = sum / expenses.size();
+        double sumOfSquares = 0.0;
+        for (Expense expense : expenses) {
+            double deviation = expense.getAmount() - mean;
+            sumOfSquares += deviation * deviation;
+        }
+        double standardDeviation = Math.sqrt(sumOfSquares / expenses.size());
+        return amount > mean + 2 * standardDeviation; // Set threshold for unusual expenses
+    }
+
 
     private void updateAllocationSpent(User user, Expense expense) {
         String category = expense.getCategory();
