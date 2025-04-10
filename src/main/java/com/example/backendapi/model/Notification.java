@@ -16,8 +16,13 @@ public class Notification {
     private String senderUsername;
     private LocalDateTime createdAt = LocalDateTime.now();
     private boolean read = false;
+    private String category = "normal";
 
     public void setRead(boolean read) {
         this.read = read;
+    }
+
+    public void setCategory(String category){
+        this.category = category;
     }
 }

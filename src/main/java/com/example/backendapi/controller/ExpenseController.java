@@ -49,9 +49,9 @@ public class ExpenseController {
 
         user.incrementScore(5);
         userRepository.save(user); 
+        
+        notifyConnections(user, expense);  // Notify all connections
 
-        // Notify all connections
-        notifyConnections(user, expense);
         updateAllocationSpent(user, expense);
 
         // Save the expense
@@ -65,10 +65,16 @@ public class ExpenseController {
             for (String parentId : user.getParentId()){
                 Notification notification = new Notification();
                 notification.setUserId(parentId); // Notify the parent
-                notification.setMessage(user.getUsername() + " logged a new expense: " + 
-                    expense.getTitle() + " ($" + expense.getAmount() + ")");
+                String title = expense.getTitle() == null ? "" : " " + expense.getTitle();
+                if (expense.getAmount() > 1000) {
+                    notification.setCategory("warning"); // Set category to warning for extraordinary expenses
+                    notification.setMessage("Warning! " + user.getUsername() + " logged an unusual expense:" + 
+                    title + " ($" + expense.getAmount() + ")");
+                } else {
+                    notification.setMessage(user.getUsername() + " logged a new expense:" + 
+                    title + " ($" + expense.getAmount() + ")");
+                }
                 notification.setSenderUsername(user.getUsername());
-                
                 notificationRepository.save(notification);
             }
         }
