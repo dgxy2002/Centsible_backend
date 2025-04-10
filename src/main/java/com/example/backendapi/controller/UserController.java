@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.backendapi.repository.ExpenseRepository; 
 import org.springframework.security.crypto.password.PasswordEncoder;
-
+import java.util.ArrayList;
 import org.springframework.security.core.Authentication;
 
 import com.example.backendapi.security.JwtTokenProvider;
@@ -375,6 +375,37 @@ public class UserController {
         userRepository.save(fromUser);
         
         return new ResponseEntity<>("Nudge sent successfully", HttpStatus.OK);
+    }
+
+    @GetMapping("/{userId}/get-leaderboard")
+    public ResponseEntity<List<User>> getLeaderboard(@PathVariable String userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        ArrayList<User> Leaderboard = new ArrayList<>();
+        if (user.getParentId().size() != 0) { // add all parents to the leaderboard
+            for (String parentIds: user.getParentId()) {
+                User parent = userRepository.findById(parentIds).orElse(null);
+                if (parent == null) {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+                Leaderboard.add(parent);
+            }
+        } 
+        if (user.getConnections().size() != 0) { // add all connections to the leaderboard
+            for (Map<String, String> connectionMaps: user.getConnections()){
+                for (Map.Entry<String, String> connection : connectionMaps.entrySet()) {
+                    String connectionUsername = connection.getValue();
+                    User connectionUsers = userRepository.findByUsername(connectionUsername);
+                    Leaderboard.add(connectionUsers);
+                }
+            }
+        }
+        Leaderboard.add(user);
+        // Return unsorted leaderboard
+        return new ResponseEntity<>(Leaderboard, HttpStatus.OK);
     }
 }
 
