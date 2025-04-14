@@ -443,6 +443,22 @@ public class UserController {
         profileData.put("biography", user.getBiography());
         return profileData;
     }
+
+    @PutMapping("/{username}/profile")
+    public Map<String, Object> updateProfile(@PathVariable String username, @RequestBody Map<String, Object> updates) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return Map.of("error", "User not found");
+        }
+        if (updates.containsKey("firstname")) user.setFirstname((String) updates.get("firstname"));
+        if (updates.containsKey("lastname")) user.setLastname((String) updates.get("lastname"));
+        if (updates.containsKey("biography")) user.setBiography((String) updates.get("biography"));
+        if (updates.containsKey("birthdate")) user.setBirthdate(LocalDate.parse((String) updates.get("birthdate")));
+        if (updates.containsKey("imageUrl")) user.setImageUrl((String) updates.get("imageUrl"));
+
+        userRepository.save(user);
+        return Map.of("message", "Profile updated successfully");
+    }
 }
 
 class LoginRequest {
