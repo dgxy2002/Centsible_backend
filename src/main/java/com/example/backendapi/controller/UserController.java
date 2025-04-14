@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 import com.example.backendapi.service.CloudinaryService;
 import com.example.backendapi.security.JwtTokenProvider;
+import java.io.IOException;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -444,6 +445,7 @@ public class UserController {
         return profileData;
     }
 
+    // Update profile WITHOUT profile image
     @PutMapping("/{username}/profile")
     public Map<String, Object> updateProfile(@PathVariable String username, @RequestBody Map<String, Object> updates) {
         User user = userRepository.findByUsername(username);
@@ -454,10 +456,36 @@ public class UserController {
         if (updates.containsKey("lastname")) user.setLastname((String) updates.get("lastname"));
         if (updates.containsKey("biography")) user.setBiography((String) updates.get("biography"));
         if (updates.containsKey("birthdate")) user.setBirthdate(LocalDate.parse((String) updates.get("birthdate")));
-        if (updates.containsKey("imageUrl")) user.setImageUrl((String) updates.get("imageUrl"));
 
         userRepository.save(user);
         return Map.of("message", "Profile updated successfully");
+    }
+    
+    // ONLY update profile image
+    @PostMapping("/{username}/upload-profile-image")
+    public Map<String, Object> uploadProfileImage(
+            @PathVariable String username,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return Map.of("error", "User not found");
+        }
+        if (file.isEmpty()) {
+            return Map.of("error", "File is empty");
+        }
+
+        // Upload to Cloudinary
+        String imageUrl = cloudinaryService.uploadFile(file);
+
+        // Update user
+        user.setImageUrl(imageUrl);
+        userRepository.save(user);
+
+        // Respond with URL
+        Map<String, Object> response = new HashMap<>();
+        response.put("imageUrl", imageUrl);
+        return response;
     }
 }
 
