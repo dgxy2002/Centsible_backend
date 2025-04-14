@@ -24,6 +24,11 @@ public class User {
     private LocalDate lastLoginDate;
     private int loginStreak;
     private List<String> parentId;
+    private String imageUrl = "https://res.cloudinary.com/dipmlrzfc/image/upload/v1744623604/Generic_avatar_yxu2zr.png";
+    private String lastname = "";
+    private String firstname = "";
+    private LocalDate birthdate = null;
+    private String biography = "";
 
     // Constructors
     public User() {}
@@ -150,14 +155,43 @@ public class User {
         this.parentId.add(parentId);
     }
 
-    // toString() method (optional, for debugging)
-    @Override
-    public String toString() {
-        return "User{" +
-                "id='" + id + '\'' +
-                ", username='" + username + '\'' +
-                ", connections=" + connections +
-                ", budget=" + budget +
-                '}';
+    public void setBiography(String biography) {
+        this.biography = biography;
+    }
+
+    public String getBiography() {
+        return this.biography;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImageUrl() {
+        return this.imageUrl;
+    }
+
+    public String getLastname() {
+        return lastname;
+    }   
+
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
+
+    public String getFirstname() {
+        return firstname;
+    }
+
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
+
+    public LocalDate getBirthdate() {
+        return birthdate;
+    }
+
+    public void setBirthdate(LocalDate birthdate) {
+        this.birthdate = birthdate;
     }
 }

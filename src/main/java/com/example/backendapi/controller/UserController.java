@@ -14,7 +14,8 @@ import com.example.backendapi.repository.ExpenseRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.ArrayList;
 import org.springframework.security.core.Authentication;
-
+import org.springframework.web.multipart.MultipartFile;
+import com.example.backendapi.service.CloudinaryService;
 import com.example.backendapi.security.JwtTokenProvider;
 
 import java.util.Map;
@@ -44,6 +45,9 @@ public class UserController {
 
     @Autowired
     private NotificationRepository notificationRepository;
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     // Add a new user
     @PostMapping
@@ -406,6 +410,38 @@ public class UserController {
         Leaderboard.add(user);
         // Return unsorted leaderboard
         return new ResponseEntity<>(Leaderboard, HttpStatus.OK);
+    }
+
+    @PostMapping("/{username}/upload-image")
+    public ResponseEntity<String> uploadImage(@PathVariable String username, @RequestParam("file") MultipartFile file) {
+        try {
+            User user = userRepository.findByUsername(username);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+            String url = cloudinaryService.uploadFile(file);
+            user.setImageUrl(url); 
+            userRepository.save(user);
+            return ResponseEntity.ok("Image uploaded successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{username}/profile")
+    public Map<String, Object> getProfile(@PathVariable String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return Map.of("error", "User not found");
+        }
+        Map<String, Object> profileData = new HashMap<>();
+        profileData.put("username", user.getUsername());
+        profileData.put("imageUrl", user.getImageUrl());
+        profileData.put("firstname", user.getFirstname());
+        profileData.put("lastname", user.getLastname());
+        profileData.put("birthdate", user.getBirthdate());
+        profileData.put("biography", user.getBiography());
+        return profileData;
     }
 }
 
