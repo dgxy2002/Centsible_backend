@@ -331,20 +331,15 @@ public class UserController {
     public ResponseEntity<List<Notification>> getRecentNotifications(
         @PathVariable String userId) { 
         
-        // // Authentication check
-        // if (!authenticatedUserMatches(userId, authentication)) {
-        //     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        // }
-        
         LocalDate oneWeekAgo = LocalDate.now().minusDays(7);
         List<Notification> notifications = notificationRepository
             .findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, oneWeekAgo);
-        for (Notification notification : notifications) {
-            notification.setRead(true); // Mark as read
-            notificationRepository.save(notification); // Save the updated notification
-        }
+    
+        // Bulk mark as read
+        notificationRepository.markAllAsRead(userId, oneWeekAgo);
+        
         return ResponseEntity.ok(notifications);
-    }
+    }    
 
     @GetMapping("/{userId}/pending-invitations")
     public ResponseEntity<ArrayList<User>> getPendingInvitations(

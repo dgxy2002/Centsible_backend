@@ -9,14 +9,13 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 
 @Repository
-public interface NotificationRepository extends MongoRepository<Notification, String> {
-    // Existing method
+public interface NotificationRepository 
+    extends MongoRepository<Notification, String>, NotificationRepositoryCustom {
+    
     List<Notification> findByUserIdOrderByCreatedAtDesc(String userId);
     
-    // New methods
     List<Notification> findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(
-        String userId, 
-        LocalDate date
+        String userId, LocalDate date
     );
     
     long countByUserIdAndReadFalse(String userId);
