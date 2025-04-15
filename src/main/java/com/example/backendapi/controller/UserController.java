@@ -142,13 +142,23 @@ public class UserController {
 
     // Get all connections for a user
     @GetMapping("/{userId}/connections")
-    public ResponseEntity<List<Map<String, String>>> getConnections(@PathVariable String userId) {
+    public ResponseEntity<List<User>> getConnections(@PathVariable String userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(user.getConnections(), HttpStatus.OK);
+        ArrayList<User> Output = new ArrayList<>();
+
+        if (user.getConnections().size() != 0) { // add all connections to the leaderboard
+            for (Map<String, String> connectionMaps: user.getConnections()){
+                String connectionUsername = connectionMaps.get("username");
+                User connectionUsers = userRepository.findByUsername(connectionUsername);
+                Output.add(connectionUsers);
+            }
+        }
+
+        return new ResponseEntity<>(Output, HttpStatus.OK);
     }
 
     // Update a user's budget
@@ -277,7 +287,8 @@ public class UserController {
                 "message", "Login successful",
                 "token", token,
                 "id", user.getId(),
-                "username", user.getUsername()
+                "username", user.getUsername(),
+                "imageUrl", user.getImageUrl()
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -400,11 +411,9 @@ public class UserController {
         } 
         if (user.getConnections().size() != 0) { // add all connections to the leaderboard
             for (Map<String, String> connectionMaps: user.getConnections()){
-                for (Map.Entry<String, String> connection : connectionMaps.entrySet()) {
-                    String connectionUsername = connection.getValue();
-                    User connectionUsers = userRepository.findByUsername(connectionUsername);
-                    Leaderboard.add(connectionUsers);
-                }
+                String connectionUsername = connectionMaps.get("username");
+                User connectionUsers = userRepository.findByUsername(connectionUsername);
+                Leaderboard.add(connectionUsers);
             }
         }
         Leaderboard.add(user);
