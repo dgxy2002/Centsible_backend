@@ -506,6 +506,21 @@ public class UserController {
         response.put("imageUrl", imageUrl);
         return response;
     }
+
+    @PostMapping("/{username}/checked-child")
+    public ResponseEntity<String> checkChild(@PathVariable String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        if (user.getLastCheckChild().getDayOfMonth() != LocalDate.now().getDayOfMonth()) {
+            user.setLastCheckChild(LocalDate.now());
+            user.incrementScore(5);
+            userRepository.save(user);
+            return ResponseEntity.ok("Reward claimed!");
+        }
+        return ResponseEntity.ok("Reward already claimed!");
+    }
 }
 
 class LoginRequest {

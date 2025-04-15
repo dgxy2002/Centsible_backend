@@ -23,7 +23,7 @@ public class DailyQuestMigration implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (!enableMigration) {
-            System.out.println("⚠️ Migration skipped: enable.migration.nudge.log is false.");
+            System.out.println("Migration skipped: enable.migration.nudge.log is false.");
             return;
         }
 
@@ -33,13 +33,8 @@ public class DailyQuestMigration implements CommandLineRunner {
         for (User user : users) {
             boolean changed = false;
 
-            if (user.getLastNudge() == null) {
-                user.setLastNudge(LocalDate.of(2000, 1, 1));
-                changed = true;
-            }
-
-            if (user.getLastLog() == null) {
-                user.setLastLog(LocalDate.of(2000, 1, 1));
+            if (user.getLastCheckChild() == null) {
+                user.setLastCheckChild(LocalDate.of(2000, 1, 1));
                 changed = true;
             }
 
@@ -49,6 +44,6 @@ public class DailyQuestMigration implements CommandLineRunner {
             }
         }
 
-        System.out.println("✅ Migration complete: updated " + updatedCount + " users with default lastNudge and lastLog.");
+        System.out.println("Migration complete: updated " + updatedCount + " users with default lastCheckChild.");
     }
 }

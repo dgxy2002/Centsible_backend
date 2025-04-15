@@ -31,6 +31,7 @@ public class User {
     private String biography = "";
     private LocalDate lastLog;
     private LocalDate lastNudge;
+    private LocalDate lastCheckChild;
 
     // Constructors
     public User() {}
@@ -213,5 +214,13 @@ public class User {
 
     public void setLastNudge(LocalDate lastNudge) {
         this.lastNudge = lastNudge;
+    }
+
+    public LocalDate getLastCheckChild() {
+        return lastCheckChild;
+    }
+    
+    public void setLastCheckChild(LocalDate lastCheckChild) {
+        this.lastCheckChild = lastCheckChild;
     }
 }
