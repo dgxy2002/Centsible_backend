@@ -347,15 +347,23 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/pending-invitations")
-    public ResponseEntity<List<Map<String, String>>> getPendingInvitations(
+    public ResponseEntity<ArrayList<User>> getPendingInvitations(
             @PathVariable String userId) {
         
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        
-        return new ResponseEntity<>(user.getPendingInvitations(), HttpStatus.OK);
+        ArrayList<User> Output = new ArrayList<>();
+        for (Map<String, String> pendingUserMaps : user.getPendingInvitations()) {
+            String pendingUsername = pendingUserMaps.get("username");
+            User pendingUser = userRepository.findByUsername(pendingUsername);
+            if (pendingUser == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            Output.add(pendingUser);
+        }
+        return new ResponseEntity<>(Output, HttpStatus.OK);
     }
 
     // Get unread count
