@@ -225,7 +225,7 @@ public class UserController {
         }
         
         user.removeConnection(connectionId, connection.getUsername());
-        connection.getParentId().remove(userId); // Remove parent ID if it's the user being removed
+        connection.getParentId().remove(userId); 
         userRepository.save(user);
         
         return new ResponseEntity<>("Connection removed successfully", HttpStatus.OK);
@@ -386,7 +386,10 @@ public class UserController {
         notification.setSenderUsername(fromUsername); // or the sender's username
         notificationRepository.save(notification);
 
-        fromUser.incrementScore(5);
+        if (fromUser.getLastNudge().getDayOfMonth() != LocalDate.now().getDayOfMonth()) {
+            fromUser.incrementScore(5);
+        }
+        fromUser.setLastNudge(LocalDate.now());
         userRepository.save(fromUser);
         
         return new ResponseEntity<>("Nudge sent successfully", HttpStatus.OK);

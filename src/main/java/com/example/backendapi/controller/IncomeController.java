@@ -24,7 +24,6 @@ public class IncomeController {
     @Autowired
     private UserRepository userRepository;
 
-    // Add a new income for a specific user
     @PostMapping
     public ResponseEntity<String> addIncome(@RequestBody Income income) {
         // Check if the user exists
@@ -32,8 +31,11 @@ public class IncomeController {
         if (user == null) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
-
-        // Save the income
+        if (user.getLastLog().getDayOfMonth() != LocalDate.now().getDayOfMonth()) {
+            user.incrementScore(5);
+        }
+        user.setLastLog(LocalDate.now());
+        userRepository.save(user);
         incomeRepository.save(income);
         return new ResponseEntity<>("Income saved successfully!", HttpStatus.CREATED);
     }

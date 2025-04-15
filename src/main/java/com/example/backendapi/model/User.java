@@ -5,19 +5,19 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.data.mongodb.core.index.Indexed; // Import Indexed annotation
+import org.springframework.data.mongodb.core.index.Indexed; 
 import java.time.LocalDate;
 
 import java.util.Map; 
 
 @Document(collection = "testUniqueUsers") // Maps this class to the MongoDB collection "users"
 public class User {
-    @Id // Marks this field as the primary key
+    @Id 
     private String id;
     @Indexed(unique=true)
     private String username;
     private String password;
-    private List<Map<String,String>> connections = new ArrayList<>(); // Field for user connections
+    private List<Map<String,String>> connections = new ArrayList<>(); 
     private List<Map<String, String>> pendingInvitations = new ArrayList<>();
     private double budget;
     private int score;
@@ -29,6 +29,8 @@ public class User {
     private String firstname = "";
     private LocalDate birthdate = null;
     private String biography = "";
+    private LocalDate lastLog;
+    private LocalDate lastNudge;
 
     // Constructors
     public User() {}
@@ -40,6 +42,8 @@ public class User {
         this.budget = 0.0;
         this.loginStreak = 1;
         this.lastLoginDate = LocalDate.now();
+        this.lastLog = LocalDate.of(2000, 1, 1);
+        this.lastNudge = LocalDate.of(2000, 1, 1);
         this.parentId = new ArrayList<>();
     }
 
@@ -193,5 +197,21 @@ public class User {
 
     public void setBirthdate(LocalDate birthdate) {
         this.birthdate = birthdate;
+    }
+
+    public LocalDate getLastLog() {
+        return lastLog;
+    }  
+
+    public void setLastLog(LocalDate lastLog) {
+        this.lastLog = lastLog;
+    }
+
+    public LocalDate getLastNudge() {
+        return lastNudge;
+    }
+
+    public void setLastNudge(LocalDate lastNudge) {
+        this.lastNudge = lastNudge;
     }
 }

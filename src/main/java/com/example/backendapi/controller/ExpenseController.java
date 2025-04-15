@@ -47,7 +47,10 @@ public class ExpenseController {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
 
-        user.incrementScore(5);
+        if (user.getLastLog().getDayOfMonth() != LocalDate.now().getDayOfMonth()) {
+            user.incrementScore(5);;
+        } 
+        user.setLastLog(LocalDate.now());
         userRepository.save(user); 
 
         notifyConnections(user, expense);  // Notify all connections
