@@ -90,17 +90,17 @@ public class UserController {
         }
         
         // Check if already connected
-        if (inviteeObj.getConnections().contains(Map.of(inviterId, inviterUsername))) {
+        if (inviteeObj.getConnections().contains(Map.of("userId", inviterId, "username", inviterUsername, "imageUrl", inviterObj.getImageUrl()))) {
             return new ResponseEntity<>("Already connected", HttpStatus.BAD_REQUEST);
         }
         
         // Check if invitation already exists
-        if (inviteeObj.getPendingInvitations().contains(Map.of(inviterId, inviterUsername))) {
+        if (inviteeObj.getPendingInvitations().contains(Map.of("userId", inviterId, "username", inviterUsername, "imageUrl", inviterObj.getImageUrl()))) {
             return new ResponseEntity<>("Invitation already sent", HttpStatus.BAD_REQUEST);
         }
         
         // Add to pending invitations
-        inviteeObj.addPendingInvitation(inviterId, inviterUsername);
+        inviteeObj.addPendingInvitation(inviterId, inviterUsername, inviterObj.getImageUrl());
         userRepository.save(inviteeObj);
         
         return new ResponseEntity<>("Invitation sent successfully", HttpStatus.OK);
@@ -123,16 +123,16 @@ public class UserController {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         
-        if (!invitee.getPendingInvitations().contains(Map.of(inviterId, inviterUsername))) {
+        if (!invitee.getPendingInvitations().contains(Map.of("userId", inviterId, "username", inviterUsername, "imageUrl", inviter.getImageUrl()))) {
             return new ResponseEntity<>("No pending invitation", HttpStatus.BAD_REQUEST);
         }
         
         // Remove from pending regardless of response
-        invitee.removePendingInvitation(inviterId, inviterUsername);
+        invitee.removePendingInvitation(inviterId, inviterUsername, inviter.getImageUrl());
         userRepository.save(invitee);
         
         if (accept) {
-            inviter.addConnection(inviteeId, inviteeUsername);
+            inviter.addConnection(inviteeId, inviteeUsername, invitee.getImageUrl());
             invitee.addParentId(inviterId);
             userRepository.saveAll(List.of(invitee, inviter));
         }
@@ -214,8 +214,7 @@ public class UserController {
             return new ResponseEntity<>("Connection does not exist", HttpStatus.BAD_REQUEST);
         }
         
-        // Remove mutual connection
-        user.removeConnection(connectionId, connection.getUsername());
+        user.removeConnection(connectionId, connection.getUsername(), connection.getImageUrl());
         connection.getParentId().remove(userId); // Remove parent ID if it's the user being removed
         userRepository.save(user);
         

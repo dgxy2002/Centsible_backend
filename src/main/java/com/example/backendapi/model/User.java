@@ -80,12 +80,12 @@ public class User {
         this.budget = budget;
     }
 
-    public void addConnection(String userId, String username) {
-        this.connections.add(Map.of(userId, username));
+    public void addConnection(String userId, String username, String imageUrl) {
+        this.connections.add(Map.of("userId", userId, "username", username, "imageUrl", imageUrl));
     }
 
-    public void removeConnection(String userId, String username) {
-        this.connections.remove(Map.of(userId, username));
+    public void removeConnection(String userId, String username, String imageUrl) {
+        this.connections.remove(Map.of("userId", userId, "username", username, "imageUrl", imageUrl));
     }
 
     public int getScore() {
@@ -129,9 +129,9 @@ public class User {
         return this.budget - totalAllocated;
     }
 
-    public void addPendingInvitation(String userId, String username) {
-        if (!this.pendingInvitations.contains(Map.of(userId, username))) {
-            this.pendingInvitations.add(Map.of(userId, username));
+    public void addPendingInvitation(String userId, String username, String imageUrl) {
+        if (!this.pendingInvitations.contains(Map.of("userId", userId, "username", username, "imageUrl", imageUrl))) {
+            this.pendingInvitations.add(Map.of("userId", userId, "username", username, "imageUrl", imageUrl));
         }
     }
 
@@ -139,8 +139,8 @@ public class User {
         return this.pendingInvitations;
     }
     
-    public void removePendingInvitation(String userId, String username) {
-        this.pendingInvitations.remove(Map.of(userId, username));
+    public void removePendingInvitation(String userId, String username, String imageUrl) {
+        this.pendingInvitations.remove(Map.of("userId", userId, "username", username, "imageUrl", imageUrl));
     }
 
     public List<String> getParentId() {
