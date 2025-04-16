@@ -420,7 +420,7 @@ public class UserController {
                 
                 String connectionUsername = connectionMaps.get("username");
                 User connectionUsers = userRepository.findByUsername(connectionUsername);
-                if (!Leaderboard.contains(user)) {
+                if (!Leaderboard.contains(connectionUsers)) {
                     Leaderboard.add(connectionUsers);
                 }
             }
