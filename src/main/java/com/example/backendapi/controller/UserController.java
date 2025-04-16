@@ -406,6 +406,7 @@ public class UserController {
         }
 
         ArrayList<User> Leaderboard = new ArrayList<>();
+        ArrayList<String> added = new ArrayList<>();
         if (user.getParentId().size() != 0) { // add all parents to the leaderboard
             for (String parentIds: user.getParentId()) {
                 User parent = userRepository.findById(parentIds).orElse(null);
@@ -413,6 +414,7 @@ public class UserController {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
                 Leaderboard.add(parent);
+                added.add(parent.getUsername());
             }
         } 
         if (user.getConnections().size() != 0) { // add all connections to the leaderboard
@@ -420,7 +422,7 @@ public class UserController {
                 
                 String connectionUsername = connectionMaps.get("username");
                 User connectionUsers = userRepository.findByUsername(connectionUsername);
-                if (!Leaderboard.contains(connectionUsers)) {
+                if (!added.contains(connectionUsername)) {
                     Leaderboard.add(connectionUsers);
                 }
             }
