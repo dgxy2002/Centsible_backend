@@ -417,9 +417,12 @@ public class UserController {
         } 
         if (user.getConnections().size() != 0) { // add all connections to the leaderboard
             for (Map<String, String> connectionMaps: user.getConnections()){
+                
                 String connectionUsername = connectionMaps.get("username");
                 User connectionUsers = userRepository.findByUsername(connectionUsername);
-                Leaderboard.add(connectionUsers);
+                if (!Leaderboard.contains(user)) {
+                    Leaderboard.add(connectionUsers);
+                }
             }
         }
         Leaderboard.add(user);
